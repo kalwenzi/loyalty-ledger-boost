@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus, Users, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import CustomerEntry from './CustomerEntry';
 import CustomerRankings from './CustomerRankings';
 import BusinessProfile from './BusinessProfile';
@@ -13,32 +15,59 @@ import BusinessProfile from './BusinessProfile';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userData, setUserData] = useState<any>(null);
+  const { user, signOut } = useAuth();
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('loyaltyTracker_isLoggedIn');
-    if (!isLoggedIn) {
-      navigate('/login');
-      return;
+    if (user) {
+      fetchProfile();
     }
+  }, [user]);
 
-    const storedUserData = localStorage.getItem('loyaltyTracker_user');
-    if (storedUserData) {
-      setUserData(JSON.parse(storedUserData));
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('loyaltyTracker_isLoggedIn');
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out"
-    });
-    navigate('/');
   };
 
-  if (!userData) {
-    return <div>Loading...</div>;
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out"
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -48,8 +77,12 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{userData.businessName}</h1>
-              <p className="text-gray-600">Welcome back, {userData.ownerName}</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {profileData?.business_name || 'Your Business'}
+              </h1>
+              <p className="text-gray-600">
+                Welcome back, {profileData?.owner_name || user?.email}
+              </p>
             </div>
             <Button onClick={handleLogout} variant="outline" className="flex items-center">
               <LogOut className="h-4 w-4 mr-2" />
@@ -82,11 +115,11 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="entry">
-            <CustomerEntry userData={userData} setUserData={setUserData} />
+            <CustomerEntry />
           </TabsContent>
 
           <TabsContent value="rankings">
-            <CustomerRankings userData={userData} />
+            <CustomerRankings />
           </TabsContent>
 
           <TabsContent value="customers">
@@ -98,13 +131,13 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CustomerRankings userData={userData} showAllCustomers={true} />
+                <CustomerRankings showAllCustomers={true} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="profile">
-            <BusinessProfile userData={userData} setUserData={setUserData} />
+            <BusinessProfile profileData={profileData} setProfileData={setProfileData} />
           </TabsContent>
         </Tabs>
       </div>

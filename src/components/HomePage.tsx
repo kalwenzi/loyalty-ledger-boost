@@ -65,17 +65,10 @@ const HomePage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              onClick={() => navigate('/signup')} 
+              onClick={() => navigate('/auth')} 
               className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
             >
-              Sign Up for Free
-            </Button>
-            <Button 
-              onClick={() => navigate('/login')} 
-              variant="outline" 
-              className="w-full py-3 text-lg border-green-600 text-green-600 hover:bg-green-50"
-            >
-              Login to Your Account
+              Get Started
             </Button>
           </CardContent>
         </Card>
