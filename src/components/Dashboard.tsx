@@ -17,11 +17,13 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const [profileData, setProfileData] = useState<any>(null);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchCustomers();
     }
   }, [user]);
 
@@ -37,6 +39,33 @@ const Dashboard = () => {
         console.error('Error fetching profile:', error);
       } else {
         setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching customers:', error);
+      } else {
+        // Transform Supabase data to match the expected format
+        const transformedCustomers = data?.map(customer => ({
+          id: customer.customer_id,
+          firstName: customer.first_name,
+          lastName: customer.last_name,
+          totalPurchases: parseFloat(customer.total_purchases.toString()),
+          visitCount: customer.visit_count,
+          lastVisit: customer.updated_at
+        })) || [];
+        setCustomers(transformedCustomers);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -69,6 +98,14 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  // Create userData object in the expected format for backward compatibility
+  const userData = {
+    businessName: profileData?.business_name || '',
+    ownerName: profileData?.owner_name || '',
+    email: profileData?.email || user?.email || '',
+    customers: customers
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -115,11 +152,11 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="entry">
-            <CustomerEntry />
+            <CustomerEntry userData={userData} setUserData={() => fetchCustomers()} />
           </TabsContent>
 
           <TabsContent value="rankings">
-            <CustomerRankings />
+            <CustomerRankings userData={userData} />
           </TabsContent>
 
           <TabsContent value="customers">
@@ -131,13 +168,13 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <CustomerRankings showAllCustomers={true} />
+                <CustomerRankings userData={userData} showAllCustomers={true} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="profile">
-            <BusinessProfile profileData={profileData} setProfileData={setProfileData} />
+            <BusinessProfile userData={userData} setUserData={() => fetchProfile()} />
           </TabsContent>
         </Tabs>
       </div>
