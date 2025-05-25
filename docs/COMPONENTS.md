@@ -110,6 +110,7 @@
 - Transforms Supabase data to component-expected format
 - Manages global app state for customer operations
 - Provides logout functionality
+- Tracks active tab state for visual feedback
 
 **Data Flow**:
 1. `fetchProfile()` → loads business information
@@ -121,11 +122,16 @@
 - Maps `phone_number` from DB to `phoneNumber` in components
 - Handles new customer data structure with phone identification
 
+**Navigation Features**:
+- Active tab highlighting with colored backgrounds
+- Visual feedback for current section
+- Color-coded tabs: Entry (green), Rankings (blue), Customers (purple), Profile (orange)
+
 **Tabs Structure**:
 - Customer Entry: Phone-based customer search and entry
 - Rankings: View top customers by purchase amount
 - All Customers: Complete customer list with phone numbers
-- Profile: Business information management
+- Profile: Business information and currency management
 
 ---
 
@@ -137,17 +143,19 @@
 **Phone Number Search Flow**:
 - Real-time search as user types (debounced 300ms)
 - Queries Supabase customers table by phone_number
-- Shows loading state during search
+- Shows loading state during search with spinning search icon
 - Displays found customer details or new customer form
 
 **Customer Found Flow**:
-- Displays customer name and purchase history
+- Displays customer name and purchase history in green-themed card
 - Allows direct purchase amount entry
 - Updates existing customer record
 - Increments visit count and total purchases
 
 **New Customer Flow**:
 - Triggers when phone number not found (>=10 digits)
+- Shows blue-themed "Customer Not Found" card
+- Compact "Add New Customer" button (not full-width)
 - Collects first name, last name, and initial purchase
 - Creates new customer record with phone as identifier
 - Sets initial visit count to 1
@@ -166,9 +174,10 @@ newCustomerData: { firstName, lastName }
 - Asynchronous phone number search
 - Automatic customer detection
 - Seamless new customer registration
-- Real-time search feedback
+- Real-time search feedback with visual indicators
 - Form validation and error handling
 - Success/error toast notifications
+- Optimized UI with compact buttons
 
 **Search Algorithm**:
 1. User types phone number
@@ -194,6 +203,7 @@ newCustomerData: { firstName, lastName }
 - Shows phone numbers instead of customer IDs
 - Maintains all existing ranking functionality
 - Responsive table design with phone number column
+- Currency-aware display using business profile settings
 
 **Features**:
 - Date range filtering
@@ -215,18 +225,29 @@ newCustomerData: { firstName, lastName }
 ---
 
 ### 9. BusinessProfile.tsx
-**Purpose**: Business information management and statistics display.
+**Purpose**: Business information management, currency selection, and statistics display.
 
 **How it works**:
 
 **Form Sections**:
-- Business Information: name, type, address, description
+- Business Information: name, type, address, description, currency
 - Personal Information: owner name, email, phone
+
+**Currency Management**:
+- Dropdown select with 5 major international currencies
+- 30 most common African currencies
+- Visual currency symbols and full names
+- Grouped display (International vs African)
+- Saves to user profile for global use
+
+**Supported Currencies**:
+- **International**: USD, EUR, GBP, JPY, CHF
+- **African**: ZAR, NGN, KES, UGX, TZS, GHS, EGP, MAD, TND, DZD, AOA, BWP, BIF, CVE, XAF, KMF, CDF, DJF, ERN, SZL, ETB, GMD, GNF, LRD, LYD, MGA, MWK, MRU, MUR, MZN, NAD, RWF
 
 **Statistics Dashboard**:
 - Total customers count
 - Total visits across all customers
-- Total revenue calculation
+- Total revenue calculation with selected currency symbol
 
 **Data Persistence**:
 - Updates Supabase profiles table
@@ -237,13 +258,14 @@ newCustomerData: { firstName, lastName }
 - Icon-enhanced form fields
 - Responsive two-column layout
 - Real-time statistics calculation
+- Currency-aware revenue display
 - Form validation and success feedback
 
 ---
 
 ## UI Components (shadcn/ui)
 
-### Button, Card, Input, Label, Tabs
+### Button, Card, Input, Label, Tabs, Select
 **Purpose**: Consistent UI components providing design system foundation.
 
 **Key Features**:
@@ -251,6 +273,7 @@ newCustomerData: { firstName, lastName }
 - Accessibility compliance
 - Responsive design
 - Theme consistency
+- Select component for currency dropdown
 
 ### Toast System
 **Purpose**: User feedback for actions and errors.
@@ -297,14 +320,14 @@ toast({
   id: string,              // UUID from database
   firstName: string,
   lastName: string,
-  phoneNumber: string,     // Primary identifier (replaced customer ID)
+  phoneNumber: string,     // Primary identifier (unique)
   totalPurchases: number,
   visitCount: number,
   lastVisit: string        // ISO timestamp
 }
 ```
 
-### Profile Data Structure
+### Profile Data Structure (Updated)
 ```typescript
 {
   businessName: string,
@@ -313,15 +336,23 @@ toast({
   phone?: string,
   address?: string,
   businessType?: string,
-  description?: string
+  description?: string,
+  currency: string         // ISO currency code (e.g., 'USD', 'KES', 'NGN')
 }
 ```
 
 ### Database Schema Changes
 - Removed `customer_id` column (4-digit sequential ID)
 - Added `phone_number` column with unique constraint
-- Maintained all other customer fields
+- Phone number serves as primary customer identifier
 - Updated indexes for phone number search optimization
+- Currency stored in user profiles for global application
+
+### Currency System
+- Default currency: USD
+- Supports 35+ currencies (5 international + 30+ African)
+- Currency selection persists across all components
+- Automatic symbol display in statistics and reports
 
 ## Error Handling Patterns
 
@@ -341,6 +372,26 @@ toast({
 
 ### Search Operations
 - Debounced search to prevent excessive API calls
-- Loading states during search
+- Loading states during search with visual indicators
 - Graceful handling of no results
 - Network error handling
+- Optimized UI feedback
+
+## User Experience Enhancements
+
+### Visual Feedback
+- Active tab highlighting with distinct colors
+- Loading states with animated icons
+- Success/error states with appropriate styling
+- Compact button sizing for better UX
+
+### Navigation
+- Color-coded tabs for easy identification
+- Visual state management across components
+- Responsive design for all screen sizes
+
+### Data Entry
+- Phone-first customer identification
+- Automatic customer lookup and creation
+- Streamlined purchase recording process
+- Currency-aware displays throughout application

@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('entry');
 
   useEffect(() => {
     if (user) {
@@ -132,21 +133,33 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="entry" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-white">
-            <TabsTrigger value="entry" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="entry" 
+              className={`flex items-center gap-2 ${activeTab === 'entry' ? 'bg-green-100 text-green-700 border-green-200' : ''}`}
+            >
               <UserPlus className="h-4 w-4" />
               Customer Entry
             </TabsTrigger>
-            <TabsTrigger value="rankings" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="rankings" 
+              className={`flex items-center gap-2 ${activeTab === 'rankings' ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}`}
+            >
               <TrendingUp className="h-4 w-4" />
               Rankings
             </TabsTrigger>
-            <TabsTrigger value="customers" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="customers" 
+              className={`flex items-center gap-2 ${activeTab === 'customers' ? 'bg-purple-100 text-purple-700 border-purple-200' : ''}`}
+            >
               <Users className="h-4 w-4" />
               All Customers
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="profile" 
+              className={`flex items-center gap-2 ${activeTab === 'profile' ? 'bg-orange-100 text-orange-700 border-orange-200' : ''}`}
+            >
               <Settings className="h-4 w-4" />
               Profile
             </TabsTrigger>

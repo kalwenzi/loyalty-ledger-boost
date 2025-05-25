@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, User, Mail, Phone, MapPin } from 'lucide-react';
+import { Building, User, Mail, Phone, MapPin, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BusinessProfileProps {
@@ -22,8 +23,53 @@ const BusinessProfile = ({ userData, setUserData }: BusinessProfileProps) => {
     phone: userData.phone || '',
     address: userData.address || '',
     businessType: userData.businessType || '',
-    description: userData.description || ''
+    description: userData.description || '',
+    currency: userData.currency || 'USD'
   });
+
+  // Major international currencies + 30 most common African currencies
+  const currencies = [
+    // Major International
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+    { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
+    
+    // African Currencies
+    { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
+    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+    { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh' },
+    { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh' },
+    { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵' },
+    { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£' },
+    { code: 'MAD', name: 'Moroccan Dirham', symbol: 'DH' },
+    { code: 'TND', name: 'Tunisian Dinar', symbol: 'DT' },
+    { code: 'DZD', name: 'Algerian Dinar', symbol: 'DA' },
+    { code: 'AOA', name: 'Angolan Kwanza', symbol: 'Kz' },
+    { code: 'BWP', name: 'Botswana Pula', symbol: 'P' },
+    { code: 'BIF', name: 'Burundian Franc', symbol: 'FBu' },
+    { code: 'CVE', name: 'Cape Verdean Escudo', symbol: '$' },
+    { code: 'XAF', name: 'Central African CFA Franc', symbol: 'FCFA' },
+    { code: 'KMF', name: 'Comorian Franc', symbol: 'CF' },
+    { code: 'CDF', name: 'Congolese Franc', symbol: 'FC' },
+    { code: 'DJF', name: 'Djiboutian Franc', symbol: 'Fdj' },
+    { code: 'ERN', name: 'Eritrean Nakfa', symbol: 'Nfk' },
+    { code: 'SZL', name: 'Eswatini Lilangeni', symbol: 'L' },
+    { code: 'ETB', name: 'Ethiopian Birr', symbol: 'Br' },
+    { code: 'GMD', name: 'Gambian Dalasi', symbol: 'D' },
+    { code: 'GNF', name: 'Guinean Franc', symbol: 'FG' },
+    { code: 'LRD', name: 'Liberian Dollar', symbol: 'L$' },
+    { code: 'LYD', name: 'Libyan Dinar', symbol: 'LD' },
+    { code: 'MGA', name: 'Malagasy Ariary', symbol: 'Ar' },
+    { code: 'MWK', name: 'Malawian Kwacha', symbol: 'MK' },
+    { code: 'MRU', name: 'Mauritanian Ouguiya', symbol: 'UM' },
+    { code: 'MUR', name: 'Mauritian Rupee', symbol: '₨' },
+    { code: 'MZN', name: 'Mozambican Metical', symbol: 'MT' },
+    { code: 'NAD', name: 'Namibian Dollar', symbol: 'N$' },
+    { code: 'RWF', name: 'Rwandan Franc', symbol: 'RF' }
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +92,13 @@ const BusinessProfile = ({ userData, setUserData }: BusinessProfileProps) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handleCurrencyChange = (value: string) => {
+    setFormData({
+      ...formData,
+      currency: value
     });
   };
 
@@ -92,6 +145,32 @@ const BusinessProfile = ({ userData, setUserData }: BusinessProfileProps) => {
                     onChange={handleInputChange}
                     placeholder="e.g., Butchery, Salon, Retail Store"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Default Currency</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                    <Select value={formData.currency} onValueChange={handleCurrencyChange}>
+                      <SelectTrigger className="pl-10">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className="px-2 py-1 text-xs font-semibold text-gray-500">Major International</div>
+                        {currencies.slice(0, 5).map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.symbol} - {currency.name} ({currency.code})
+                          </SelectItem>
+                        ))}
+                        <div className="px-2 py-1 text-xs font-semibold text-gray-500 border-t mt-1 pt-2">African Currencies</div>
+                        {currencies.slice(5).map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.symbol} - {currency.name} ({currency.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
@@ -208,7 +287,8 @@ const BusinessProfile = ({ userData, setUserData }: BusinessProfileProps) => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-purple-600">
-              ${userData.customers 
+              {formData.currency === 'USD' ? '$' : currencies.find(c => c.code === formData.currency)?.symbol || '$'}
+              {userData.customers 
                 ? userData.customers.reduce((sum: number, customer: any) => sum + customer.totalPurchases, 0).toFixed(2)
                 : '0.00'
               }
