@@ -120,8 +120,8 @@ const CustomerEntry = ({ userData, setUserData }: CustomerEntryProps) => {
         description: `${foundCustomer.firstName} ${foundCustomer.lastName} - Total: $${newTotal.toFixed(2)}`
       });
 
-      // Refresh data
-      setUserData();
+      // Refresh data by calling setUserData with the current userData
+      setUserData(userData);
       resetForm();
     } catch (error) {
       console.error('Error updating customer:', error);
@@ -166,8 +166,8 @@ const CustomerEntry = ({ userData, setUserData }: CustomerEntryProps) => {
         description: `${newCustomerData.firstName} ${newCustomerData.lastName} has been registered`
       });
 
-      // Refresh data
-      setUserData();
+      // Refresh data by calling setUserData with the current userData
+      setUserData(userData);
       resetForm();
     } catch (error) {
       console.error('Error creating customer:', error);
