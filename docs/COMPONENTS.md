@@ -75,7 +75,7 @@
 - Uses Lucide icons for visual appeal
 
 **Features Highlighted**:
-- Customer tracking capabilities
+- Customer tracking capabilities via phone numbers
 - Purchase analytics
 - Business insights
 
@@ -113,44 +113,69 @@
 
 **Data Flow**:
 1. `fetchProfile()` → loads business information
-2. `fetchCustomers()` → loads and transforms customer data
+2. `fetchCustomers()` → loads and transforms customer data (including phone numbers)
 3. Creates `userData` object for child components
 4. Passes data and update functions to tabs
 
+**Data Transformation**:
+- Maps `phone_number` from DB to `phoneNumber` in components
+- Handles new customer data structure with phone identification
+
 **Tabs Structure**:
-- Customer Entry: Add new customers and record purchases
+- Customer Entry: Phone-based customer search and entry
 - Rankings: View top customers by purchase amount
-- All Customers: Complete customer list
+- All Customers: Complete customer list with phone numbers
 - Profile: Business information management
 
 ---
 
 ### 7. CustomerEntry.tsx
-**Purpose**: Interface for adding new customers and recording purchases for returning customers.
+**Purpose**: Phone number-based customer identification and purchase recording system.
 
 **How it works**:
 
-**New Customer Flow**:
-- Generates sequential 4-digit customer IDs
-- Creates customer record with initial purchase
-- Updates parent state via callback
+**Phone Number Search Flow**:
+- Real-time search as user types (debounced 300ms)
+- Queries Supabase customers table by phone_number
+- Shows loading state during search
+- Displays found customer details or new customer form
 
-**Returning Customer Flow**:
-- Searches existing customers by ID
-- Updates purchase totals and visit counts
-- Handles customer not found errors
+**Customer Found Flow**:
+- Displays customer name and purchase history
+- Allows direct purchase amount entry
+- Updates existing customer record
+- Increments visit count and total purchases
+
+**New Customer Flow**:
+- Triggers when phone number not found (>=10 digits)
+- Collects first name, last name, and initial purchase
+- Creates new customer record with phone as identifier
+- Sets initial visit count to 1
 
 **State Management**:
 ```typescript
-newCustomer: { firstName, lastName, purchaseAmount }
-returningCustomer: { customerId, purchaseAmount }
+phoneNumber: string,
+purchaseAmount: string,
+foundCustomer: Customer | null,
+isSearching: boolean,
+showNewCustomerForm: boolean,
+newCustomerData: { firstName, lastName }
 ```
 
 **Key Features**:
-- Automatic ID generation and display
-- Recent activity display (last 5 interactions)
+- Asynchronous phone number search
+- Automatic customer detection
+- Seamless new customer registration
+- Real-time search feedback
 - Form validation and error handling
 - Success/error toast notifications
+
+**Search Algorithm**:
+1. User types phone number
+2. Debounced search after 300ms delay
+3. Query database for exact phone match
+4. Update UI based on search results
+5. Handle loading and error states
 
 ---
 
@@ -165,12 +190,17 @@ returningCustomer: { customerId, purchaseAmount }
 3. Applies date filters if specified
 4. Assigns rankings and special badges
 
+**Updated Display**:
+- Shows phone numbers instead of customer IDs
+- Maintains all existing ranking functionality
+- Responsive table design with phone number column
+
 **Features**:
 - Date range filtering
 - Top 3 customer highlighting
 - Ranking icons (Trophy, Medal, Award)
 - Summary statistics calculation
-- Responsive table design
+- Phone number display for easy identification
 
 **Badge System**:
 - Rank 1: "Top Customer" (yellow)
@@ -261,15 +291,16 @@ toast({
 
 ## Data Models
 
-### Customer Data Structure
+### Customer Data Structure (Updated)
 ```typescript
 {
-  id: string,           // 4-digit customer ID
+  id: string,              // UUID from database
   firstName: string,
   lastName: string,
+  phoneNumber: string,     // Primary identifier (replaced customer ID)
   totalPurchases: number,
   visitCount: number,
-  lastVisit: string     // ISO timestamp
+  lastVisit: string        // ISO timestamp
 }
 ```
 
@@ -286,6 +317,12 @@ toast({
 }
 ```
 
+### Database Schema Changes
+- Removed `customer_id` column (4-digit sequential ID)
+- Added `phone_number` column with unique constraint
+- Maintained all other customer fields
+- Updated indexes for phone number search optimization
+
 ## Error Handling Patterns
 
 ### Database Operations
@@ -293,9 +330,17 @@ toast({
 - Detailed console logging for debugging
 - User-friendly error messages via toast
 - Graceful degradation for failed operations
+- Phone number uniqueness validation
 
 ### Form Validation
 - Client-side validation before submission
 - Server-side error handling
 - Real-time feedback for invalid inputs
 - Prevent submission of invalid data
+- Phone number format validation
+
+### Search Operations
+- Debounced search to prevent excessive API calls
+- Loading states during search
+- Graceful handling of no results
+- Network error handling

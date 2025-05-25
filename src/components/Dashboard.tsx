@@ -58,9 +58,10 @@ const Dashboard = () => {
       } else {
         // Transform Supabase data to match the expected format
         const transformedCustomers = data?.map(customer => ({
-          id: customer.customer_id,
+          id: customer.id,
           firstName: customer.first_name,
           lastName: customer.last_name,
+          phoneNumber: customer.phone_number,
           totalPurchases: parseFloat(customer.total_purchases.toString()),
           visitCount: customer.visit_count,
           lastVisit: customer.updated_at
