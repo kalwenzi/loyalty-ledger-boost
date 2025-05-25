@@ -12,10 +12,10 @@ export type Database = {
       customers: {
         Row: {
           created_at: string
-          customer_id: string
           first_name: string
           id: string
           last_name: string
+          phone_number: string | null
           total_purchases: number
           updated_at: string
           user_id: string
@@ -23,10 +23,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          customer_id: string
           first_name: string
           id?: string
           last_name: string
+          phone_number?: string | null
           total_purchases?: number
           updated_at?: string
           user_id: string
@@ -34,10 +34,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          customer_id?: string
           first_name?: string
           id?: string
           last_name?: string
+          phone_number?: string | null
           total_purchases?: number
           updated_at?: string
           user_id?: string
